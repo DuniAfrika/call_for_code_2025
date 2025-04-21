@@ -3,6 +3,7 @@ import requests
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from dotenv import load_dotenv
+from app.db.models import WhatsAppWebhook
 
 
 """
@@ -14,16 +15,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-
-class WhatsAppModel(BaseModel):
-    to: str
-    message: str
-
 ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 URL = os.getenv("URL")
 
 
-async def send_whatsapp_message(msg: WhatsAppModel):
+async def send_whatsapp_message(payload: WhatsAppWebhook):
 
     headers ={
         'Authorization':f'Bearer {ACCESS_TOKEN}',
@@ -32,8 +28,8 @@ async def send_whatsapp_message(msg: WhatsAppModel):
 
     payload = {
             "messaging_product": "whatsapp",
-            "to": msg.to,
-            "text":{"body": msg.message}
+            "to": payload.to,
+            "text":{"body": payload.message}
             }
 
     response = requests.post(URL, json=payload, headers=headers)
@@ -41,4 +37,4 @@ async def send_whatsapp_message(msg: WhatsAppModel):
     if response.status_code == 200:
         return {"status":"success", "message":"Message sent"}
     else:
-         raise HTTPException(status_code = response.status_code, detail=response.json())
+        raise HTTPException(status_code = response.status_code, detail=response.json())
