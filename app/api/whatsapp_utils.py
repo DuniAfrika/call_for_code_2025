@@ -1,5 +1,6 @@
 import os
 import requests
+import httpx  # Add this import
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import PlainTextResponse 
 from pydantic import BaseModel
@@ -34,23 +35,45 @@ ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
 URL = os.getenv("URL")
 
 
-async def send_whatsapp_message(payload: WhatsAppWebhook):
-
-    headers ={
-        'Authorization':f'Bearer {ACCESS_TOKEN}',
+async def send_whatsapp_message(payload: dict):
+    headers = {
+        'Authorization': f'Bearer {ACCESS_TOKEN}',
         'Content-Type': 'application/json',
-        }
+    }
 
+    # Use dictionary keys instead of attributes
     payload = {
-            "messaging_product": "whatsapp",
-            "to": payload.to,
-            "text":{"body": payload.message}
-            }
+        "messaging_product": "whatsapp",
+        "to": payload["to"],  # Access the "to" key
+        "text": {"body": payload["text"]["body"]}  # Access the "text" -> "body" key
+    }
 
-    response = requests.post(URL, json=payload, headers=headers)
+    async with httpx.AsyncClient() as client:
+        response = await client.post(URL, json=payload, headers=headers)
 
     if response.status_code == 200:
-        return {"status":"success", "message":"Message sent"}
+        return {"status": "success", "message": "Message sent"}
     else:
-        raise HTTPException(status_code = response.status_code, detail=response.json())
+        raise HTTPException(status_code=response.status_code, detail=response.json())
+
+   
+
+async def receive_whatsapp_message(request: Request):
+    try:
+        body = await request.json()
+        # Process the incoming message
+        entry = body.get("entry", [])
+        if entry:
+            for item in entry:
+                changes = item.get("changes", [])
+                for change in changes:
+                    messages = change.get("value", {}).get("messages", [])
+                    for message in messages:
+                        sender = message.get("from")
+                        text = message.get("text", {}).get("body")
+                        # Log or process the sender and message text
+                        print(f"Message from {sender}: {text}")
+        return {"status": "success"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
