@@ -22,9 +22,7 @@ async def verify_webhook_handler(request: Request):
 async def receive_message(request: Request):
     body = await request.body()
     data = json.loads(body)
-    # print("📩 Incoming webhook data:", json.dumps(data, indent=2))
 
-    # Extract the entry details (WhatsApp structure)
     try:
         entry = data['entry'][0]
         changes = entry['changes'][0]
@@ -34,15 +32,35 @@ async def receive_message(request: Request):
         if messages:
             message = messages[0]
             sender = message['from']
-            text = message['text']['body']
+            message_type = message['type']
 
-            print(f"📨 Message from {sender}: {text}")
+            if message_type == "text":
+                text = message['text']['body']
+                print(f"📨 Text message from {sender}: {text}")
 
-            # Prepare reply
-            reply_payload = {
-                "to": sender,
-                "text": {"body": "Thank you for your message! We will get back to you shortly."}
-            }
+                # Prepare reply for text message
+                reply_payload = {
+                    "to": sender,
+                    "text": {"body": "Thank you for your message! We will get back to you shortly."}
+                }
+
+            elif message_type == "image":
+                image_id = message['image']['id']
+                caption = message['image'].get('caption', '')
+                print(f"🖼️ Image received from {sender} with caption: {caption}")
+
+                # Prepare reply for image message
+                reply_payload = {
+                    "to": sender,
+                    "text": {"body": "Thank you for sending the image! We will review it shortly."}
+                }
+
+            else:
+                print(f"⚠️ Unsupported message type from {sender}: {message_type}")
+                reply_payload = {
+                    "to": sender,
+                    "text": {"body": "Sorry, we currently support only text and image messages."}
+                }
 
             # Send the reply
             response = await send_whatsapp_message(reply_payload)
