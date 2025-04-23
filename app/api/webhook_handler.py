@@ -82,41 +82,6 @@ async def send_whatsapp_message_handler(payload: dict):
     return response
 
 
-# @router.post("/webhook/receive")
-# async def receive_whatsapp_message_handler(request: Request):
-#     """
-#     Handle receiving WhatsApp messages and respond with a template message.
-#     """
-#     # Parse the incoming request body
-#     body = await request.body()
-#     data = json.loads(body)
-#     print("📩 Incoming webhook data:", json.dumps(data, indent=2))
-
-#     # Extract the sender's phone number and message content
-#     sender = data.get("from")  # Adjust key based on your webhook payload structure
-#     message = data.get("text")  # Adjust key based on your webhook payload structure
-
-#     # Log the received message
-#     print(f"📨 Message from {sender}: {message}")
-
-#     # Define a template response
-#     template_response = "Thank you for your message! We will get back to you shortly."
-
-#     # Prepare the payload to send the response
-#     response_payload = {
-#         # "to": sender,
-#         # "text": template_response
-#         "messaging_product": "whatsapp",
-#         "to": sender,
-#         "text": {"body": template_response}
-#     }
-
-#     # Send the response using the send_whatsapp_message function
-#     response = await send_whatsapp_message(response_payload)
-#     print("Response sent:", response)
-
-#     # Return a success status
-#     return {"status": "response_sent", "response": response}
 
 
 
