@@ -34,22 +34,28 @@ async def verify_webhook(request: Request):
         PlainTextResponse:  (file)
         File Response from Meta Cloud API.
     """
-    params = request.query_params
-    mode = params.get("hub.mode")
-    token = params.get("hub.verify_token")
-    challenge = params.get("hub.challenge")
+    try:
+        params = request.query_params
+        mode = params.get("hub.mode")
+        token = params.get("hub.verify_token")
+        challenge = params.get("hub.challenge")
 
-    if mode == "subscribe" and token == VERIFY_TOKEN:
-        return PlainTextResponse(
-                content=challenge,
-                status_code=200
-                )
-    else:
-        return PlainTextResponse(
-                content="Verification failed",
-                status_code=403
-                )
-
+        if mode == "subscribe" and token == VERIFY_TOKEN:
+            return PlainTextResponse(
+                    content=challenge,
+                    status_code=200
+                    )
+        else:
+            return PlainTextResponse(
+                    content="Verification failed",
+                    status_code=403
+                    )
+    except Exception as e:
+        print("Error Verifying Webhook", {e})
+        return HTTPException(
+                status_code = 500,
+                detail = "Internal Server Error"
+                    )
 
 async def send_whatsapp_message(payload: dict):
     """Handle send WhatsApp message.
@@ -71,23 +77,36 @@ async def send_whatsapp_message(payload: dict):
         "to": payload["to"],
         "text": {"body": payload["text"]["body"]}
     }
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            response = await client.post(
+                    URL,
+                    json=payload,
+                    headers=headers
+                    )
+        response.raise_for_status()
 
-    async with httpx.AsyncClient() as client:
-        response = await client.post(
-                URL,
-                json=payload,
-                headers=headers
-                )
-
-    if response.status_code == 200:
         return {
                 "status": "success",
                 "message": "Message sent"
                 }
-    else:
-        raise HTTPException(
-                status_code=response.status_code,
-                detail=response.json()
+
+    except httpx.ConnectTimeout:
+        print("ERROR: Could not connect to WhatsApp API")
+        return {"status": "Connnection Timeout. Please Retry"}
+    
+    except httpx.HTTPStatuserror as e:
+        print("HTTP Error:", e.response.status_code, e.response.json())
+        return HTTPException(
+                status_code=e.response.status_code,
+                detail=e.response.json()
+                )
+
+    except Exception as e:
+        print("Unknown Error Occured", str(e))
+        return HTTPException(
+                status_code=500,
+                detail="Internal Server Error"
                 )
 
 
