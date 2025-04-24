@@ -1,16 +1,31 @@
+"""WhatsApp utility file: verify_webhook, send_whatsapp_message, process_whatsapp_message."""
 import os
 import requests
-import httpx  # Add this import
+import httpx
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import PlainTextResponse 
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from app.db.models import WhatsAppWebhook
+import json
 
-# VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")
-VERIFY_TOKEN = "secret_token"
+
+load_dotenv()
+
+VERIFY_TOKEN = os.getenv("VERIFY_TOKEN")
+ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
+URL = os.getenv("URL")
+
 
 async def verify_webhook(request: Request):
+    """Handle webhook_verification by Meta Cloud API.
+
+    Args:
+        request: (Request) -HTTP Request.
+
+    Return:
+        PlainTextResponse:  (file)- File Response from Meta Cloud API.
+    """
     params = request.query_params
     mode = params.get("hub.mode")
     token = params.get("hub.verify_token")
@@ -22,20 +37,15 @@ async def verify_webhook(request: Request):
         return PlainTextResponse(content="Verification failed", status_code=403)
 
 
-"""
-    - Send message
-    - Recive message
-    - Process message
-    - verification
-"""
-
-load_dotenv()
-
-ACCESS_TOKEN = os.getenv("ACCESS_TOKEN")
-URL = os.getenv("URL")
-
-
 async def send_whatsapp_message(payload: dict):
+    """Handle send WhatsApp message.
+
+    Args:
+        payload: (dict) -JSON input.
+
+    Return:
+        response:  (dict)- JSON Response from Meta Cloud API.
+    """
     headers = {
         'Authorization': f'Bearer {ACCESS_TOKEN}',
         'Content-Type': 'application/json',
@@ -58,22 +68,54 @@ async def send_whatsapp_message(payload: dict):
 
    
 
-async def receive_whatsapp_message(request: Request):
-    try:
-        body = await request.json()
-        # Process the incoming message
-        entry = body.get("entry", [])
-        if entry:
-            for item in entry:
-                changes = item.get("changes", [])
-                for change in changes:
-                    messages = change.get("value", {}).get("messages", [])
-                    for message in messages:
-                        sender = message.get("from")
-                        text = message.get("text", {}).get("body")
-                        # Log or process the sender and message text
-                        print(f"Message from {sender}: {text}")
-        return {"status": "success"}
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+async def process_whatsapp_message(request: Request) -> dict | None:
+    """Parse an incoming WhatsApp message and generates a reply payload.
 
+    Args:
+        request (Request): Incoming HTTP request from WhatsApp.
+
+    Returns:
+        dict | None: Reply payload to be sent back via WhatsApp,
+                     or None if no message needs to be sent.
+    """
+    body = await request.body()
+    data = json.loads(body)
+
+    try:
+        entry = data['entry'][0]
+        changes = entry['changes'][0]
+        value = changes['value']
+        messages = value.get('messages', [])
+
+        if messages:
+            message = messages[0]
+            sender = message['from']
+            message_type = message['type']
+
+            if message_type == "text":
+                text = message['text']['body']
+                print(f"📨 Text message from {sender}: {text}")
+                return {
+                    "to": sender,
+                    "text": {"body": "Thank you for your message! We will get back to you shortly."}
+                }
+
+            elif message_type == "image":
+                caption = message['image'].get('caption', '')
+                print(f"🖼️ Image from {sender} with caption: {caption}")
+                return {
+                    "to": sender,
+                    "text": {"body": "Thank you for sending the image! We will review it shortly."}
+                }
+
+            else:
+                print(f"⚠️ Unsupported message type from {sender}: {message_type}")
+                return {
+                    "to": sender,
+                    "text": {"body": "Sorry, we currently support only text and image messages."}
+                }
+
+    except Exception as e:
+        print("❌ Error processing message:", str(e))
+
+    return None
