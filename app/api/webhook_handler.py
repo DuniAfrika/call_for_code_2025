@@ -1,6 +1,5 @@
 """Webhook handler file for WhatsApp utility."""
 from fastapi import APIRouter, Request
-# from app.api import send_whatsapp_message, verify_webhook, process_whatsapp_message
 import app.api as WhatsAppUtil
 from app.db.models import WhatsAppWebhook
 import json

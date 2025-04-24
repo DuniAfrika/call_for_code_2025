@@ -1,9 +1,16 @@
-"""WhatsApp utility file: verify_webhook, send_whatsapp_message, process_whatsapp_message."""
+"""WhatsApp utility file:
+verify_webhook,
+send_whatsapp_message,
+process_whatsapp_message."""
 import os
 import requests
 import httpx
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.responses import PlainTextResponse 
+from fastapi import (
+        FastAPI,
+        HTTPException,
+        Request,
+        )
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
 from app.db.models import WhatsAppWebhook
@@ -24,7 +31,8 @@ async def verify_webhook(request: Request):
         request: (Request) -HTTP Request.
 
     Return:
-        PlainTextResponse:  (file)- File Response from Meta Cloud API.
+        PlainTextResponse:  (file)
+        File Response from Meta Cloud API.
     """
     params = request.query_params
     mode = params.get("hub.mode")
@@ -32,9 +40,15 @@ async def verify_webhook(request: Request):
     challenge = params.get("hub.challenge")
 
     if mode == "subscribe" and token == VERIFY_TOKEN:
-        return PlainTextResponse(content=challenge, status_code=200)
+        return PlainTextResponse(
+                content=challenge,
+                status_code=200
+                )
     else:
-        return PlainTextResponse(content="Verification failed", status_code=403)
+        return PlainTextResponse(
+                content="Verification failed",
+                status_code=403
+                )
 
 
 async def send_whatsapp_message(payload: dict):
@@ -44,29 +58,38 @@ async def send_whatsapp_message(payload: dict):
         payload: (dict) -JSON input.
 
     Return:
-        response:  (dict)- JSON Response from Meta Cloud API.
+        response:  (dict)
+        JSON Response from Meta Cloud API.
     """
     headers = {
         'Authorization': f'Bearer {ACCESS_TOKEN}',
         'Content-Type': 'application/json',
     }
 
-    # Use dictionary keys instead of attributes
     payload = {
         "messaging_product": "whatsapp",
-        "to": payload["to"],  # Access the "to" key
-        "text": {"body": payload["text"]["body"]}  # Access the "text" -> "body" key
+        "to": payload["to"],
+        "text": {"body": payload["text"]["body"]}
     }
 
     async with httpx.AsyncClient() as client:
-        response = await client.post(URL, json=payload, headers=headers)
+        response = await client.post(
+                URL,
+                json=payload,
+                headers=headers
+                )
 
     if response.status_code == 200:
-        return {"status": "success", "message": "Message sent"}
+        return {
+                "status": "success",
+                "message": "Message sent"
+                }
     else:
-        raise HTTPException(status_code=response.status_code, detail=response.json())
+        raise HTTPException(
+                status_code=response.status_code,
+                detail=response.json()
+                )
 
-   
 
 async def process_whatsapp_message(request: Request) -> dict | None:
     """Parse an incoming WhatsApp message and generates a reply payload.
@@ -92,12 +115,21 @@ async def process_whatsapp_message(request: Request) -> dict | None:
             sender = message['from']
             message_type = message['type']
 
+            reply_template_for_text = (
+                    "Thank you for your message!"
+                    "We will get back to you shortly"
+                    )
+
+            reply_template_for_image = ("Thank you for sending the image!"
+                                        "We will review it shorlty"
+                                        )
+
             if message_type == "text":
                 text = message['text']['body']
                 print(f"📨 Text message from {sender}: {text}")
                 return {
                     "to": sender,
-                    "text": {"body": "Thank you for your message! We will get back to you shortly."}
+                    "text": {"body": reply_template_for_text}
                 }
 
             elif message_type == "image":
@@ -105,14 +137,16 @@ async def process_whatsapp_message(request: Request) -> dict | None:
                 print(f"🖼️ Image from {sender} with caption: {caption}")
                 return {
                     "to": sender,
-                    "text": {"body": "Thank you for sending the image! We will review it shortly."}
+                    "text": {"body": reply_template_for_image}
                 }
 
             else:
-                print(f"⚠️ Unsupported message type from {sender}: {message_type}")
                 return {
                     "to": sender,
-                    "text": {"body": "Sorry, we currently support only text and image messages."}
+                    "text": {"body": (
+                        "Sorry, we currently support"
+                        "only text and image messages."
+                        )}
                 }
 
     except Exception as e:
