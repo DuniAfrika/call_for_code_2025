@@ -1,6 +1,11 @@
-# Install requiremnts
-pip install -r requirements.txt
-echo "Requirements Installing...."
+#!/bin/env bash
 
-# Run app
+if pip freeze | grep -q -f requirements.txt; then
+    echo "All dependencies are already installed."
+else
+    echo "Installing dependencies..."
+    pip install -r requirements.txt
+fi
+
+echo "Starting the application..."
 uvicorn main:app --reload
