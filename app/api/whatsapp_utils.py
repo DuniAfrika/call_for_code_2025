@@ -95,7 +95,7 @@ async def send_whatsapp_message(payload: dict):
         print("ERROR: Could not connect to WhatsApp API")
         return {"status": "Connnection Timeout. Please Retry"}
     
-    except httpx.HTTPStatuserror as e:
+    except httpx.HTTPStatusError as e:
         print("HTTP Error:", e.response.status_code, e.response.json())
         return HTTPException(
                 status_code=e.response.status_code,
