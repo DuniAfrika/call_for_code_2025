@@ -93,7 +93,7 @@ bash run.sh
 Or run the FastAPI app manually via:
 
 ```bash
-uvicorn app.main:app --reload
+uvicorn main:app --reload
 ```
 
 ---
