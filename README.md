@@ -16,34 +16,29 @@ juakali-bot/
 │   │
 │   ├── services/                # Business logic
 │   │   ├── user_service.py
-│   │   ├── image_processor.py   # Integrates with AI model
-│   │   └── recommendation.py
-│   │
-│   ├── ai_clients/              # AI integrations
-│   │   ├── granite_vision.py    # Vision model integration
-│   │   └── granite_llm.py       # Optional LLM for text processing
+│   │   ├── image_processing.py   # Integrates with AI model
+│   │   └── nlp_processing.py
 │   │
 │   ├── db/                      # Database models and queries
 │   │   ├── models.py
 │   │   └── queries.py
 │   │
-│   ├── utils/                   # Helper functions and validations
+│   ├── utils/                   
 │   │   ├── input_validator.py
 │   │   ├── logger.py
 │   │   └── session_manager.py
 │   │
-│   └── main.py                  # Application entrypoint
+│   └── main.py                
 │
-├── config/                      # Configuration files
-│   ├── settings.py
-│   └── secrets.env
 │
-├── tests/                       # Unit and integration tests
+├── tests/                       
 │   ├── test_image_processor.py
 │   └── test_webhook_handler.py
 │
-├── requirements.txt             # Dependencies
-├── README.md                    # Project documentation
+├── env
+├── dockerfile
+├── requirements.txt             
+├── README.md                    
 └── run.sh                       # Start server script
 ```
 
