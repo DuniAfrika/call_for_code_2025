@@ -1,13 +1,13 @@
-# 🌞 Jua Kali Bot
+# Linda - Powered by IBM Granite
 
-**Jua Kali Bot** is a powerful FastAPI-based application built to integrate with **WhatsApp/META APIs** and **AI models** for dynamic messaging, image processing, and intelligent recommendations.
+**Linda** is a powerful FastAPI-based application built to integrate with **WhatsApp/META APIs** and **IBM Granite AI models** for dynamic messaging, image processing, and intelligent recommendations.
 
 ---
 
 ## 📁 Project Structure
 
 ```
-juakali-bot/
+Linda/
 │
 ├── app/                         # Core application logic
 │   ├── api/                     # WhatsApp/META API & Webhooks
@@ -69,7 +69,7 @@ juakali-bot/
 
 ```bash
 git clone <repository-url>
-cd juakali-bot
+cd Linda
 ```
 
 ### 2. Install Dependencies

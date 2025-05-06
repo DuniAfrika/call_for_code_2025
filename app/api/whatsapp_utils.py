@@ -5,7 +5,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 from dotenv import load_dotenv
-from app.db.models import WhatsAppWebhook
+from app.db import WhatsAppWebhook
 from app.services import process_nlp, process_image
 import json
 
@@ -109,6 +109,33 @@ async def process_whatsapp_message(request: Request) -> dict | None:
             if message_type == "text":
                 text = message['text']['body']
                 reply_template_for_text = process_nlp(text)
+
+
+                # reply_template_for_text = (
+                #     "✅ Yes, very important!\n"
+                #     "👉 Your photo shows fine dust on your face and shirt. That dust can irritate or damage your eyes, especially when using power tools like a planer.\n"
+                #     "📝 Many eye injuries happen because dust wasn’t visible until it was too late."
+                # )
+
+                # reply_template_for_text = (
+                #     "👌 I understand. Comfort matters.\n"
+                #     "👉 Try a lightweight dust mask with a valve to make breathing easier while blocking dust.\n"
+                #     "✅ Or work in a ventilated area to reduce dust buildup."
+                # )
+                #
+                # reply_template_for_text = (
+                #     "⚠️ Normal earphones don’t block harmful noise from loud tools.\n"
+                #     "👉 It’s safer to use certified earplugs or earmuffs designed for noise reduction."
+                # )
+
+                # reply_template_for_text = (
+                #     "🙌 Final tips for today:\n"
+                #     "✅ Secure loose wood pieces around your work area—they can fall or trip you.\n"
+                #     "✅ Sweep the floor regularly to reduce slip hazards from dust.\n"
+                #     "✅ Always unplug tools when changing blades.\n\n"
+                #     "👏 Great job checking your safety before working, Peter!"
+                # )
+
                 print(f"📨 Text message from {sender}: {text}")
                 return {
                     "to": sender,
@@ -131,6 +158,18 @@ async def process_whatsapp_message(request: Request) -> dict | None:
 
                 result = process_image(save_path)
                 reply_template_for_image = result["choices"][0]["message"]["content"]
+                # reply_template_for_image = (
+                #     "⚠️ Peter, I noticed some safety risks:\n\n"
+                #     "• You’re not wearing gloves—risk of splinters or cuts from the planer.\n"
+                #     "• No eye protection—risk of dust or wood chips entering your eyes.\n"
+                #     "• Loose electrical cord near your feet—trip hazard.\n"
+                #     "• Planer blade exposed while idle—risk of accidental contact.\n\n"
+                #     "👉 Recommended actions:\n"
+                #     "✅ Wear protective gloves\n"
+                #     "✅ Put on safety goggles\n"
+                #     "✅ Move cord away from walkways\n"
+                #     "✅ Cover or disengage blade when not in use"
+                # )
                 return {
                     "to": sender,
                     "text": {"body": reply_template_for_image}
