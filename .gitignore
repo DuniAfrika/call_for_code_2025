@@ -3,4 +3,5 @@
 __pycache__
 data/
 .env
-ssh_ec2.sh
+ssh-ec2.sh
+linda-keypair.pem
