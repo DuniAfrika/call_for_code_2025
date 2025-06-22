@@ -1,5 +1,5 @@
 from pydantic import BaseModel, EmailStr
-from sqlmodel import SQLModels, Field, connect_engine
+from sqlmodel import SQLModel, Field, create_engine
 import uuid
 
 
@@ -9,8 +9,8 @@ class WhatsAppWebhook(BaseModel):
 
 database_name = "linda_db.db"
 database_path = f"sqlite:///{database_name}"
-connection_args = {"check_same_thread": False}
-engine = create_engine(database_path, connection_args=connection_args)
+connect_args = {"check_same_thread": False}
+engine = create_engine(database_path, connect_args=connect_args)
 
 class UserBase(SQLModel):
     full_name: str | None = Field(default=None, max_length=255)
@@ -25,6 +25,6 @@ class UserRegister(UserBase):
 
 
 class User(UserBase, table=True):
-    id: uuid.UUID = Field(default_factory=uuid.uuid4)
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str = None
 
