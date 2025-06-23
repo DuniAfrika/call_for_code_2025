@@ -116,5 +116,3 @@ AI models, dataset references, and WhatsApp integration governed by their respec
 
 ---
 
-Let me know if you want a condensed version, GitHub-flavored markdown export, or a multilingual version (e.g., English/Swahili).
-
