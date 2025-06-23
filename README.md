@@ -1,6 +1,7 @@
+
 ---
 
-# 📱 Linda: AI-Powered Safety Assistant for Informal Workers in Nairobi
+## 📱 Linda: AI-Powered Safety Assistant for Informal Workers in Nairobi
 
 **Linda** is an AI-powered safety assistant designed to improve Occupational Safety and Health (OSH) for informal sector workers in Nairobi’s Central Business District (CBD). From roadside welders to carpenters and masons, these workers face daily hazards without access to formal safety systems. Linda delivers real-time, personalized safety coaching—right through WhatsApp.
 
