@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 from app.db import WhatsAppWebhook
 from app.services import process_nlp, process_image
+from app.mcp.redis_client import load_context, save_context
 import json
 
 load_dotenv()
@@ -105,15 +106,28 @@ async def process_whatsapp_message(request: Request) -> dict | None:
             message = messages[0]
             sender = message['from']
             message_type = message['type']
+            
+            # Load existing chat context or initialize
+            context = await load_context(sender)
 
             if message_type == "text":
                 text = message['text']['body']
                 reply_template_for_text = process_nlp(text)
 
                 print(f"📨 Text message from {sender}: {text}")
+                # Add user message to history
+                context.add_message("user", text)
+                # Generate assistant response using context
+                response_text = await process_nlp(context)
+                # Add assistant reply to context
+                context.add_message("assistant", response_text)
+                # Save updated context to Redis
+                await save_context(sender, context)
                 return {
                     "to": sender,
                     "text": {"body": reply_template_for_text}
+                    # If message sending fails in future, consider adding:
+# "type": "text" and "messaging_product": "whatsapp"
                 }
 
             elif message_type == "image":
@@ -132,7 +146,16 @@ async def process_whatsapp_message(request: Request) -> dict | None:
 
                 result = process_image(save_path)
                 reply_template_for_image = result["choices"][0]["message"]["content"]
+
+                 # Add user message to history
+                context.add_message("user", f"[Image with caption: {caption}]")
                 
+                 # Add assistant reply to context
+                context.add_message("assistant", reply_template_for_image)
+                
+                 # Save updated context
+                await save_context(sender, context)
+
                 return {
                     "to": sender,
                     "text": {"body": reply_template_for_image}
