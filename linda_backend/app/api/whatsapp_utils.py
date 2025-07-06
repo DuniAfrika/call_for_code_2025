@@ -118,26 +118,6 @@ async def process_whatsapp_message(request: Request) -> dict | None:
                     print(f"🔐 Auth response for {sender}: {auth_result['response']}")
                     return auth_result["response"]
                 
-                # If user is not authenticated and hasn't reached registration threshold, 
-                # provide a simple response without AI processing
-                if not auth_result.get("authenticated"):
-                    message_count = auth_result.get("message_count", 0)
-                    if message_count < 3:
-                        return {
-                            "to": sender,
-                            "text": {
-                                "body": f"Hello! I'm your safety assistant. I've received {message_count} messages from you. After a few more messages, I'll ask for your name to provide personalized safety recommendations."
-                            }
-                        }
-                    else:
-                        # This shouldn't happen as auth_result should have a response
-                        return {
-                            "to": sender,
-                            "text": {
-                                "body": "Please provide your name to continue."
-                            }
-                        }
-                
                 # User is authenticated, process with AI
                 reply_template_for_text = process_nlp(text)
                 print(f"📨 Text message from {sender}: {text}")
@@ -159,24 +139,6 @@ async def process_whatsapp_message(request: Request) -> dict | None:
                 if auth_result.get("response"):
                     print(f"🔐 Auth response for {sender}: {auth_result['response']}")
                     return auth_result["response"]
-                
-                # If user is not authenticated, provide simple response
-                if not auth_result.get("authenticated"):
-                    message_count = auth_result.get("message_count", 0)
-                    if message_count < 3:
-                        return {
-                            "to": sender,
-                            "text": {
-                                "body": f"Hello! I can analyze safety in images. I've received {message_count} messages from you. After a few more messages, I'll ask for your name to provide personalized safety recommendations."
-                            }
-                        }
-                    else:
-                        return {
-                            "to": sender,
-                            "text": {
-                                "body": "Please provide your name to continue with image analysis."
-                            }
-                        }
 
                 # User is authenticated, process image
                 # Download image to local storage

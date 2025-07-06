@@ -2,21 +2,16 @@
 
 ## Overview
 
-The Linda Backend now implements a **lazy authentication system** for WhatsApp users. Users are identified by their WhatsApp phone number and are prompted to register after sending 3 messages.
+The Linda Backend now implements an **immediate authentication system** for WhatsApp users. Users are identified by their WhatsApp phone number and are prompted to register immediately upon their first message.
 
 ## Flow Description
 
-### 1. Initial Messages (Messages 1-2)
-- User sends messages via WhatsApp
-- System tracks message count per phone number
-- User receives simple responses without AI processing
-- No registration required yet
-
-### 2. Registration Prompt (Message 3)
-- After 3 messages, unregistered users are prompted for their name
+### 1. First Message
+- User sends their first message via WhatsApp
+- System immediately prompts for registration
 - System sends: *"Welcome! I'm your safety assistant. To provide you with personalized safety recommendations, I need to know your name. Please reply with your full name."*
 
-### 3. Registration Process
+### 2. Registration Process
 - User provides their full name
 - System validates name (minimum 2 characters)
 - Creates user account with:
@@ -25,7 +20,7 @@ The Linda Backend now implements a **lazy authentication system** for WhatsApp u
   - No password (WhatsApp users don't need passwords)
   - Phone number from WhatsApp
 
-### 4. Post-Registration
+### 3. Post-Registration
 - User receives confirmation message
 - All subsequent messages are processed with AI
 - User is fully authenticated
@@ -51,12 +46,11 @@ The Linda Backend now implements a **lazy authentication system** for WhatsApp u
 
 ### Authentication States
 
-1. **Unregistered (< 3 messages)**
-   - Simple responses
-   - No AI processing
-   - Message count tracking
+1. **Unregistered (First message)**
+   - Immediate registration prompt
+   - No AI processing until registered
 
-2. **Registration Pending (3+ messages, no name)**
+2. **Registration Pending (Name requested)**
    - Prompt for name
    - Validation of name input
    - User creation process
@@ -81,7 +75,6 @@ GET /users/whatsapp/{phone}/auth-status
 ## Data Storage
 
 ### In-Memory Storage (Development)
-- `message_counts`: Tracks message count per phone
 - `pending_registrations`: Tracks registration state
 
 ### Database Storage

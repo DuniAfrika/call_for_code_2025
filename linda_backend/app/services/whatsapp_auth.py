@@ -1,4 +1,4 @@
-"""WhatsApp Authentication Service for lazy user registration."""
+"""WhatsApp Authentication Service for immediate user registration."""
 
 import json
 import os
@@ -9,19 +9,8 @@ from app.users.models import User
 from app.users.utils import create_access_token
 from datetime import datetime, timedelta
 
-# In-memory storage for message counts (in production, use Redis or database)
-message_counts: Dict[str, int] = {}
+# In-memory storage for pending registrations (in production, use Redis or database)
 pending_registrations: Dict[str, Dict[str, Any]] = {}
-
-def get_message_count(phone: str) -> int:
-    """Get the message count for a phone number."""
-    return message_counts.get(phone, 0)
-
-def increment_message_count(phone: str) -> int:
-    """Increment message count for a phone number."""
-    current_count = message_counts.get(phone, 0)
-    message_counts[phone] = current_count + 1
-    return current_count + 1
 
 def get_user_by_phone(phone: str) -> Optional[User]:
     """Get user by phone number from database."""
@@ -56,11 +45,6 @@ def create_whatsapp_user(phone: str, full_name: str) -> User:
     finally:
         db.close()
 
-def should_prompt_for_registration(phone: str) -> bool:
-    """Check if user should be prompted for registration (after 3 messages)."""
-    count = get_message_count(phone)
-    return count >= 3 and get_user_by_phone(phone) is None
-
 def is_registration_pending(phone: str) -> bool:
     """Check if user is in the process of registration."""
     return phone in pending_registrations
@@ -87,9 +71,6 @@ def process_whatsapp_message_for_auth(phone: str, message_text: str) -> Dict[str
     Process WhatsApp message for authentication flow.
     Returns response data and authentication status.
     """
-    # Increment message count
-    message_count = increment_message_count(phone)
-    
     # Check if user exists
     user = get_user_by_phone(phone)
     
@@ -99,78 +80,65 @@ def process_whatsapp_message_for_auth(phone: str, message_text: str) -> Dict[str
             "authenticated": True,
             "user": user,
             "response": None,  # No special response needed
-            "message_count": message_count
         }
     
-    # Check if we should prompt for registration
-    if should_prompt_for_registration(phone):
-        if not is_registration_pending(phone):
-            # First time prompting for registration
-            set_registration_pending(phone, {"step": "name_request"})
-            return {
-                "authenticated": False,
-                "user": None,
-                "response": {
-                    "to": phone,
-                    "text": {
-                        "body": "Welcome! I'm your safety assistant. To provide you with personalized safety recommendations, I need to know your name. Please reply with your full name."
-                    }
-                },
-                "message_count": message_count
-            }
-        else:
-            # User is in registration process
-            registration_data = get_registration_data(phone)
+    # Check if user is in registration process
+    if is_registration_pending(phone):
+        # User is in registration process
+        registration_data = get_registration_data(phone)
+        
+        if registration_data.get("step") == "name_request":
+            # User provided their name
+            full_name = message_text.strip()
+            if len(full_name) < 2:
+                return {
+                    "authenticated": False,
+                    "user": None,
+                    "response": {
+                        "to": phone,
+                        "text": {
+                            "body": "Please provide your full name (at least 2 characters)."
+                        }
+                    },
+                }
             
-            if registration_data.get("step") == "name_request":
-                # User provided their name
-                full_name = message_text.strip()
-                if len(full_name) < 2:
-                    return {
-                        "authenticated": False,
-                        "user": None,
-                        "response": {
-                            "to": phone,
-                            "text": {
-                                "body": "Please provide your full name (at least 2 characters)."
-                            }
-                        },
-                        "message_count": message_count
-                    }
+            # Create the user
+            try:
+                user = create_whatsapp_user(phone, full_name)
+                complete_registration(phone)
                 
-                # Create the user
-                try:
-                    user = create_whatsapp_user(phone, full_name)
-                    complete_registration(phone)
-                    
-                    return {
-                        "authenticated": True,
-                        "user": user,
-                        "response": {
-                            "to": phone,
-                            "text": {
-                                "body": f"Thank you, {full_name}! You're now registered. I'm here to help you with workplace safety. What safety concerns do you have today?"
-                            }
-                        },
-                        "message_count": message_count
-                    }
-                except Exception as e:
-                    return {
-                        "authenticated": False,
-                        "user": None,
-                        "response": {
-                            "to": phone,
-                            "text": {
-                                "body": "Sorry, there was an error creating your account. Please try again later."
-                            }
-                        },
-                        "message_count": message_count
-                    }
+                return {
+                    "authenticated": True,
+                    "user": user,
+                    "response": {
+                        "to": phone,
+                        "text": {
+                            "body": f"Thank you, {full_name}! You're now registered. I'm here to help you with workplace safety. What safety concerns do you have today?"
+                        }
+                    },
+                }
+            except Exception as e:
+                return {
+                    "authenticated": False,
+                    "user": None,
+                    "response": {
+                        "to": phone,
+                        "text": {
+                            "body": "Sorry, there was an error creating your account. Please try again later."
+                        }
+                    },
+                }
     
-    # User hasn't reached registration threshold yet
+    # User is not registered and not in registration process
+    # Start registration immediately
+    set_registration_pending(phone, {"step": "name_request"})
     return {
         "authenticated": False,
         "user": None,
-        "response": None,  # No special response needed
-        "message_count": message_count
+        "response": {
+            "to": phone,
+            "text": {
+                "body": "Welcome! I'm your safety assistant. To provide you with personalized safety recommendations, I need to know your name. Please reply with your full name."
+            }
+        },
     } 

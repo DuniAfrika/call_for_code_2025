@@ -5,7 +5,7 @@ from .dependencies import get_current_user, get_db, get_whatsapp_user_by_phone
 from .models import User, UserUpdate, UserPublic, UserRegister, UserLogin
 from app.db.models import Token
 from .utils import create_access_token, get_password_hash, verify_password
-from app.services.whatsapp_auth import get_message_count, get_user_by_phone
+from app.services.whatsapp_auth import get_user_by_phone
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -66,15 +66,13 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
 @router.get("/whatsapp/{phone}")
 async def get_whatsapp_user_status(phone: str):
     """
-    Get WhatsApp user status and message count.
+    Get WhatsApp user status.
     """
     user = get_user_by_phone(phone)
-    message_count = get_message_count(phone)
     
     return {
         "phone": phone,
         "registered": user is not None,
-        "message_count": message_count,
         "user_info": UserPublic.model_validate(user) if user else None
     }
 
@@ -83,18 +81,14 @@ async def get_whatsapp_auth_status(phone: str):
     """
     Get detailed authentication status for WhatsApp user.
     """
-    from app.services.whatsapp_auth import should_prompt_for_registration, is_registration_pending
+    from app.services.whatsapp_auth import is_registration_pending
     
     user = get_user_by_phone(phone)
-    message_count = get_message_count(phone)
-    should_prompt = should_prompt_for_registration(phone)
     is_pending = is_registration_pending(phone)
     
     return {
         "phone": phone,
         "registered": user is not None,
-        "message_count": message_count,
-        "should_prompt_for_registration": should_prompt,
         "registration_pending": is_pending,
         "authenticated": user is not None,
         "user_info": UserPublic.model_validate(user) if user else None
