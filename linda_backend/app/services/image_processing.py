@@ -19,10 +19,13 @@ def process_image(image_path):
     """
     
     # --- CONFIG (hardcoded inside) ---
-    access_token = os.getenv("WATSONX_IAM")
-    project_id = os.getenv("WATSONX_PROJECT_ID")
-    model_id = os.getenv("IMAGE_MODEL_ID")
-    url = "https://us-south.ml.cloud.ibm.com/ml/v1/text/chat?version=2023-05-29"
+    #access_token = os.getenv("WATSONX_IAM")
+    access_token = "eyJraWQiOiIyMDE5MDcyNCIsImFsZyI6IlJTMjU2In0.eyJpYW1faWQiOiJJQk1pZC02OTgwMDBZOVhFIiwiaWQiOiJJQk1pZC02OTgwMDBZOVhFIiwicmVhbG1pZCI6IklCTWlkIiwianRpIjoiZmFhYTU4NWEtZTcwYi00Y2M0LTg1MDQtYmYwYzIwZTcyNmIwIiwiaWRlbnRpZmllciI6IjY5ODAwMFk5WEUiLCJnaXZlbl9uYW1lIjoiUm9kZ2VycyIsImZhbWlseV9uYW1lIjoiSGF3b25hIiwibmFtZSI6IlJvZGdlcnMgSGF3b25hIiwiZW1haWwiOiJoYXdvbmEuMTc1NjlAc3R1ZGVudHMua3l1LmFjLmtlIiwic3ViIjoiaGF3b25hLjE3NTY5QHN0dWRlbnRzLmt5dS5hYy5rZSIsImF1dGhuIjp7InN1YiI6Imhhd29uYS4xNzU2OUBzdHVkZW50cy5reXUuYWMua2UiLCJpYW1faWQiOiJJQk1pZC02OTgwMDBZOVhFIiwibmFtZSI6IlJvZGdlcnMgSGF3b25hIiwiZ2l2ZW5fbmFtZSI6IlJvZGdlcnMiLCJmYW1pbHlfbmFtZSI6Ikhhd29uYSIsImVtYWlsIjoiaGF3b25hLjE3NTY5QHN0dWRlbnRzLmt5dS5hYy5rZSJ9LCJhY2NvdW50Ijp7InZhbGlkIjp0cnVlLCJic3MiOiIxNzkyNmNjMzY3YzE0ODJhODY3YzNlZTY3YmRlZWJhMSIsImZyb3plbiI6dHJ1ZX0sImlhdCI6MTc1MTQxMDYyOCwiZXhwIjoxNzUxNDE0MjI4LCJpc3MiOiJodHRwczovL2lhbS5jbG91ZC5pYm0uY29tL2lkZW50aXR5IiwiZ3JhbnRfdHlwZSI6InVybjppYm06cGFyYW1zOm9hdXRoOmdyYW50LXR5cGU6YXBpa2V5Iiwic2NvcGUiOiJpYm0gb3BlbmlkIiwiY2xpZW50X2lkIjoiZGVmYXVsdCIsImFjciI6MSwiYW1yIjpbInB3ZCJdfQ.h-NuUzHJ8H6_Amy8AQr8s6jOBWn-Bja-OjbZQaAKBg7UQeYCdJDvzDg_FBsamJL_PtJsC3Q-iw3P4z0voRF10ksWfrI0LQ4gwB0b9s8EKJTjDCA7EhOMWf6_KWhWkR8P1cR-84EioUQI2uVDO0LemcmagYl3_FCMjCa9XFeXHAmXDIVg4b9CTqODv9GVqXCwD5V7NV8qPxtYnXEJDUBVJuTuYnoiTwcdI-wSaHG9v-OWG8Wcwwcql8LOYa_iToZ_Teoc9Srd5SeqZIH63lxZAGRcnG7vlVRy7K12H6KaxIFtRYv1TsLPKyfR3BDQwiLRnAuS0rSIlvHg3oWhfZVi2w"
+    #project_id = os.getenv("WATSONX_PROJECT_ID")
+    project_id = "459773d2-c05b-41c5-99fb-6300e6456992"
+    #model_id = os.getenv("IMAGE_MODEL_ID")
+    model_id = "meta-llama/llama-3-2-11b-vision-instruct" 
+    url = "https://eu-de.ml.cloud.ibm.com/ml/v1/text/chat?version=2023-05-29"
 
     # --- PREPARE IMAGE BASE64 ---
     try:

@@ -2,6 +2,6 @@
 .idea/
 __pycache__
 data/
-.env
+..env
 ssh-ec2.sh
-linda-keypair.pem
+../inda-keypair.pem
