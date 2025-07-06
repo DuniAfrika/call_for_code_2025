@@ -10,8 +10,10 @@ load_dotenv()
 
 def process_nlp(text_input):
     credentials = Credentials(
-      url = os.getenv("WATSONX_URL"),
-      api_key = os.getenv("WATSONX_API_KEY"),
+      #url = os.getenv("WATSONX_URL"),
+      url = "https://eu-de.ml.cloud.ibm.com",
+      api_key = "LKOUzUw1whXTJYd_Wk-JC2_dCVVPehOh5ekcB4Ci2NaK"
+      #api_key = os.getenv("WATSONX_API_KEY"),
     )
 
     client = APIClient(credentials)
@@ -20,8 +22,10 @@ def process_nlp(text_input):
         "max_new_tokens": 250
     }
 
-    model_id = os.getenv("NLP_MODEL_ID")
-    project_id = os.getenv("WATSONX_PROJECT_ID")
+    #model_id = os.getenv("NLP_MODEL_ID")
+    model_id = "ibm/granite-3-8b-instruct"
+    #project_id = os.getenv("WATSONX_PROJECT_ID")
+    project_id = "459773d2-c05b-41c5-99fb-6300e6456992"
     space_id = None
     verify = False
 
@@ -34,7 +38,7 @@ def process_nlp(text_input):
       verify=verify,
     )
 
-    with open("/home/ratego/call_for_code_25/app/services/ruleset.json") as f:
+    with open("/home/ubuntu/call_for_code_2025/linda_backend/app/services/ruleset.json") as f:
         ruleset_data = json.load(f)
 
     prompt = f"{text_input}+{ruleset_data}"

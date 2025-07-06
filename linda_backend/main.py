@@ -6,7 +6,7 @@ from app.api import webhook_handler
 app = FastAPI()
 
 app.get("/")
-def main():
-    return {"server_status":"Running"}
+def isAlive():
+    return {"status": "server running"}
 
 app.include_router(webhook_handler.router, prefix="", tags=["webhook"])

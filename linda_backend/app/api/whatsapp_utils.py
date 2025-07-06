@@ -109,6 +109,7 @@ async def process_whatsapp_message(request: Request) -> dict | None:
             if message_type == "text":
                 text = message['text']['body']
                 reply_template_for_text = process_nlp(text)
+              #  reply_template_for_text = "Message Receive. Processing under Development"
 
                 print(f"📨 Text message from {sender}: {text}")
                 return {
