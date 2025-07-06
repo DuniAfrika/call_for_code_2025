@@ -10,7 +10,7 @@ class UserRegister(UserBase):
 
 class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
-    hashed_password: str
+    hashed_password: Optional[str] = Field(default=None)
 
 class UserUpdate(SQLModel):
     username: Optional[str] = Field(None, max_length=50)

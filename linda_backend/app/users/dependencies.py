@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
-from sqlmodel import Session
+from sqlmodel import Session, select
 from .utils import verify_password, get_password_hash
 from app.db.models import TokenData
 from .models import User
@@ -40,6 +40,9 @@ def authenticate_user(db: Session, phone: str, password: str) -> Optional[User]:
     user = get_user(db, phone)
     if not user:
         return None
+    # Handle WhatsApp users without passwords
+    if not user.hashed_password:
+        return None  # WhatsApp users can't authenticate with password
     if not verify_password(password, user.hashed_password):
         return None
     return user
@@ -66,3 +69,11 @@ async def get_current_user(
     if user is None:
         raise credentials_exception
     return user
+
+def get_whatsapp_user_by_phone(phone: str) -> Optional[User]:
+    """Get WhatsApp user by phone number without requiring password authentication."""
+    db = next(get_session())
+    try:
+        return db.exec(select(User).where(User.phone == phone)).first()
+    finally:
+        db.close()

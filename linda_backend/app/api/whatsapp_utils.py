@@ -7,6 +7,7 @@ from pydantic import BaseModel
 from dotenv import load_dotenv
 from app.db import WhatsAppWebhook
 from app.services import process_nlp, process_image
+from app.services.whatsapp_auth import process_whatsapp_message_for_auth
 import json
 
 load_dotenv()
@@ -108,9 +109,37 @@ async def process_whatsapp_message(request: Request) -> dict | None:
 
             if message_type == "text":
                 text = message['text']['body']
+                
+                # Process authentication first
+                auth_result = process_whatsapp_message_for_auth(sender, text)
+                
+                # If authentication system has a response, send it
+                if auth_result.get("response"):
+                    print(f"🔐 Auth response for {sender}: {auth_result['response']}")
+                    return auth_result["response"]
+                
+                # If user is not authenticated and hasn't reached registration threshold, 
+                # provide a simple response without AI processing
+                if not auth_result.get("authenticated"):
+                    message_count = auth_result.get("message_count", 0)
+                    if message_count < 3:
+                        return {
+                            "to": sender,
+                            "text": {
+                                "body": f"Hello! I'm your safety assistant. I've received {message_count} messages from you. After a few more messages, I'll ask for your name to provide personalized safety recommendations."
+                            }
+                        }
+                    else:
+                        # This shouldn't happen as auth_result should have a response
+                        return {
+                            "to": sender,
+                            "text": {
+                                "body": "Please provide your name to continue."
+                            }
+                        }
+                
+                # User is authenticated, process with AI
                 reply_template_for_text = process_nlp(text)
-              #  reply_template_for_text = "Message Receive. Processing under Development"
-
                 print(f"📨 Text message from {sender}: {text}")
                 return {
                     "to": sender,
@@ -123,6 +152,33 @@ async def process_whatsapp_message(request: Request) -> dict | None:
 
                 print(f"🖼️ Image from {sender} with caption: {caption}")
 
+                # Check authentication for image processing
+                auth_result = process_whatsapp_message_for_auth(sender, caption or "image")
+                
+                # If authentication system has a response, send it
+                if auth_result.get("response"):
+                    print(f"🔐 Auth response for {sender}: {auth_result['response']}")
+                    return auth_result["response"]
+                
+                # If user is not authenticated, provide simple response
+                if not auth_result.get("authenticated"):
+                    message_count = auth_result.get("message_count", 0)
+                    if message_count < 3:
+                        return {
+                            "to": sender,
+                            "text": {
+                                "body": f"Hello! I can analyze safety in images. I've received {message_count} messages from you. After a few more messages, I'll ask for your name to provide personalized safety recommendations."
+                            }
+                        }
+                    else:
+                        return {
+                            "to": sender,
+                            "text": {
+                                "body": "Please provide your name to continue with image analysis."
+                            }
+                        }
+
+                # User is authenticated, process image
                 # Download image to local storage
                 save_path = f"data/{media_id}.jpg"
                 try:
